@@ -57,7 +57,6 @@
       init(id) {
         this.dataForm.uuid = id || 0
         this.visible = true
-        this.getOpenTime()
         this.$nextTick(() => {
           this.$refs['dataForm'].resetFields()
         })
