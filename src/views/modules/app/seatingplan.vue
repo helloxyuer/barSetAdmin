@@ -6,7 +6,7 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <!--<el-button v-if="isAuth('app:seatingplan:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>-->
+        <el-button v-if="isAuth('app:seatingplan:save')" type="primary" @click="addOrUpdateHandle()">预定</el-button>
         <!--<el-button v-if="isAuth('app:seatingplan:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>-->
       </el-form-item>
     </el-form>
@@ -17,16 +17,16 @@
       @selection-change="selectionChangeHandle"
       style="width: 100%;">
       <!--<el-table-column-->
-        <!--type="selection"-->
-        <!--header-align="center"-->
-        <!--align="center"-->
-        <!--width="50">-->
+      <!--type="selection"-->
+      <!--header-align="center"-->
+      <!--align="center"-->
+      <!--width="50">-->
       <!--</el-table-column>-->
       <!--<el-table-column-->
-        <!--prop="uuid"-->
-        <!--header-align="center"-->
-        <!--align="center"-->
-        <!--label="">-->
+      <!--prop="uuid"-->
+      <!--header-align="center"-->
+      <!--align="center"-->
+      <!--label="">-->
       <!--</el-table-column>-->
       <el-table-column
         prop="number"
@@ -44,7 +44,7 @@
         prop="arrivaltime"
         header-align="center"
         align="center"
-        label="到达时间，默认小时分钟">
+        label="到店时间">
       </el-table-column>
       <el-table-column
         prop="name"
@@ -65,13 +65,13 @@
         label="来客人数">
       </el-table-column>
       <!--<el-table-column-->
-        <!--prop="openid"-->
-        <!--header-align="center"-->
-        <!--align="center"-->
-        <!--label="微信唯一id">-->
+      <!--prop="openid"-->
+      <!--header-align="center"-->
+      <!--align="center"-->
+      <!--label="微信唯一id">-->
       <!--</el-table-column>-->
       <el-table-column
-        prop="isours"
+        prop="isByours"
         header-align="center"
         align="center"
         label="是否本店人员锁定">
@@ -83,8 +83,7 @@
         width="150"
         label="操作">
         <template slot-scope="scope">
-          <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.uuid)">修改</el-button>
-          <el-button type="text" size="small" @click="deleteHandle(scope.row.uuid)">删除</el-button>
+          <el-button type="text" size="small" @click="deleteHandle(scope.row.uuid)">取消预定</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -104,8 +103,9 @@
 
 <script>
   import AddOrUpdate from './seatingplan-add-or-update'
+
   export default {
-    data () {
+    data() {
       return {
         dataForm: {
           key: ''
@@ -122,12 +122,12 @@
     components: {
       AddOrUpdate
     },
-    activated () {
+    activated() {
       this.getDataList()
     },
     methods: {
       // 获取数据列表
-      getDataList () {
+      getDataList() {
         this.dataListLoading = true
         this.$http({
           url: this.$http.adornUrl('/app/seatingplan/list'),
@@ -139,6 +139,9 @@
           })
         }).then(({data}) => {
           if (data && data.code === 0) {
+            data.page.list.forEach((val) => {
+              val.isByours = (val.isours == 1 ? '是' : '否')
+            })
             this.dataList = data.page.list
             this.totalPage = data.page.totalCount
           } else {
@@ -149,41 +152,38 @@
         })
       },
       // 每页数
-      sizeChangeHandle (val) {
+      sizeChangeHandle(val) {
         this.pageSize = val
         this.pageIndex = 1
         this.getDataList()
       },
       // 当前页
-      currentChangeHandle (val) {
+      currentChangeHandle(val) {
         this.pageIndex = val
         this.getDataList()
       },
       // 多选
-      selectionChangeHandle (val) {
+      selectionChangeHandle(val) {
         this.dataListSelections = val
       },
       // 新增 / 修改
-      addOrUpdateHandle (id) {
+      addOrUpdateHandle(id) {
         this.addOrUpdateVisible = true
         this.$nextTick(() => {
           this.$refs.addOrUpdate.init(id)
         })
       },
       // 删除
-      deleteHandle (id) {
-        var ids = id ? [id] : this.dataListSelections.map(item => {
-          return item.uuid
-        })
-        this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
+      deleteHandle(id) {
+        this.$confirm(`确认取消当前座位预定让其可接受他人预定吗？`, '取消预定', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
           this.$http({
-            url: this.$http.adornUrl('/app/seatingplan/delete'),
+            url: this.$http.adornUrl('/app/seatingplan/deleteById'),
             method: 'post',
-            data: this.$http.adornData(ids, false)
+            data: this.$http.adornData({uuid: id}, false)
           }).then(({data}) => {
             if (data && data.code === 0) {
               this.$message({

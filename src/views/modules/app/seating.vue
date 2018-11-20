@@ -6,7 +6,7 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <!--<el-button v-if="isAuth('app:seating:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>-->
+        <el-button type="primary" @click="setOpenTime">设置营业时间</el-button>
         <!--<el-button v-if="isAuth('app:seating:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>-->
       </el-form-item>
     </el-form>
@@ -17,16 +17,16 @@
       @selection-change="selectionChangeHandle"
       style="width: 100%;">
       <!--<el-table-column-->
-        <!--type="selection"-->
-        <!--header-align="center"-->
-        <!--align="center"-->
-        <!--width="50">-->
+      <!--type="selection"-->
+      <!--header-align="center"-->
+      <!--align="center"-->
+      <!--width="50">-->
       <!--</el-table-column>-->
       <!--<el-table-column-->
-        <!--prop="uuid"-->
-        <!--header-align="center"-->
-        <!--align="center"-->
-        <!--label="">-->
+      <!--prop="uuid"-->
+      <!--header-align="center"-->
+      <!--align="center"-->
+      <!--label="">-->
       <!--</el-table-column>-->
       <el-table-column
         prop="number"
@@ -53,8 +53,10 @@
         width="150"
         label="操作">
         <template slot-scope="scope">
-          <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.uuid)">锁定</el-button>
-          <el-button type="text" size="small" @click="deleteHandle(scope.row.uuid)">取消锁定</el-button>
+          <el-button type="text" size="small" v-show="scope.row.status==1" @click="addOrUpdateHandle(scope.row)">锁定
+          </el-button>
+          <el-button type="text" size="small" v-show="scope.row.status==0" @click="deleteHandle(scope.row)">取消锁定
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -74,8 +76,9 @@
 
 <script>
   import AddOrUpdate from './seating-add-or-update'
+
   export default {
-    data () {
+    data() {
       return {
         dataForm: {
           key: ''
@@ -92,12 +95,12 @@
     components: {
       AddOrUpdate
     },
-    activated () {
+    activated() {
       this.getDataList()
     },
     methods: {
       // 获取数据列表
-      getDataList () {
+      getDataList() {
         this.dataListLoading = true
         this.$http({
           url: this.$http.adornUrl('/app/seating/list'),
@@ -119,41 +122,69 @@
         })
       },
       // 每页数
-      sizeChangeHandle (val) {
+      sizeChangeHandle(val) {
         this.pageSize = val
         this.pageIndex = 1
         this.getDataList()
       },
       // 当前页
-      currentChangeHandle (val) {
+      currentChangeHandle(val) {
         this.pageIndex = val
         this.getDataList()
       },
       // 多选
-      selectionChangeHandle (val) {
+      selectionChangeHandle(val) {
         this.dataListSelections = val
       },
-      // 新增 / 修改
-      addOrUpdateHandle (id) {
+      setOpenTime: function () {
         this.addOrUpdateVisible = true
         this.$nextTick(() => {
-          this.$refs.addOrUpdate.init(id)
+          this.$refs.addOrUpdate.init()
         })
       },
-      // 删除
-      deleteHandle (id) {
-        var ids = id ? [id] : this.dataListSelections.map(item => {
-          return item.uuid
-        })
-        this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
+      addOrUpdateHandle(item) {
+        this.$confirm(`确认锁定当前座位让其不可预定吗？`, '锁定', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
           this.$http({
-            url: this.$http.adornUrl('/app/seating/delete'),
+            url: this.$http.adornUrl('/app/seating/lockor'),
             method: 'post',
-            data: this.$http.adornData(ids, false)
+            data: this.$http.adornData({
+              uuid: item.uuid,
+              type: 0
+            }, false)
+          }).then(({data}) => {
+            if (data && data.code === 0) {
+              this.$message({
+                message: '操作成功',
+                type: 'success',
+                duration: 1500,
+                onClose: () => {
+                  this.getDataList()
+                }
+              })
+            } else {
+              this.$message.error(data.msg)
+            }
+          })
+        })
+      },
+      // 删除
+      deleteHandle(item) {
+        this.$confirm(`确认取消锁定当前座位让其可预定吗？`, '取消锁定', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$http({
+            url: this.$http.adornUrl('/app/seating/lockor'),
+            method: 'post',
+            data: this.$http.adornData({
+              uuid: item.uuid,
+              type: 1
+            }, false)
           }).then(({data}) => {
             if (data && data.code === 0) {
               this.$message({

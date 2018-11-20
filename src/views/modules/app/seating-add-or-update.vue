@@ -3,16 +3,24 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
-    <el-form-item label="座位号" prop="number">
-      <el-input v-model="dataForm.number" placeholder="座位号"></el-input>
-    </el-form-item>
-    <el-form-item label="可坐人数" prop="num">
-      <el-input v-model="dataForm.num" placeholder="可坐人数"></el-input>
-    </el-form-item>
-    <el-form-item label="座位是否可用 1是0否" prop="status">
-      <el-input v-model="dataForm.status" placeholder="座位是否可用 1是0否"></el-input>
-    </el-form-item>
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+             label-width="80px">
+      <el-form-item label="营业时间" prop="begaintime">
+        <el-time-select placeholder="起始时间"
+                        v-model="dataForm.begaintime"
+                        :picker-options="timeoptions"></el-time-select>
+      </el-form-item>
+      <el-form-item label="打烊时间" prop="endtime">
+        <el-time-select
+          placeholder="结束时间"
+          v-model="dataForm.endtime"
+          :picker-options="{
+      start: '00:00',
+      step: '00:30',
+      end: '24:00',
+      minTime: dataForm.begaintime
+    }"></el-time-select>
+      </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
@@ -23,61 +31,62 @@
 
 <script>
   export default {
-    data () {
+    data() {
       return {
         visible: false,
         dataForm: {
-          uuid: 0,
-          number: '',
-          num: '',
-          status: ''
+          begaintime: '',
+          endtime: ''
+        },
+        timeoptions: {
+          start: '00:00',
+          step: '00:30',
+          end: '24:00'
         },
         dataRule: {
-          number: [
-            { required: true, message: '座位号不能为空', trigger: 'blur' }
+          begaintime: [
+            {required: true, message: '开始时间不能为空', trigger: 'blur'}
           ],
-          num: [
-            { required: true, message: '可坐人数不能为空', trigger: 'blur' }
-          ],
-          status: [
-            { required: true, message: '座位是否可用 1是0否不能为空', trigger: 'blur' }
+          endtime: [
+            {required: true, message: '结束时间不能为空', trigger: 'blur'}
           ]
         }
       }
     },
     methods: {
-      init (id) {
+      init(id) {
         this.dataForm.uuid = id || 0
         this.visible = true
+        this.getOpenTime()
         this.$nextTick(() => {
           this.$refs['dataForm'].resetFields()
-          if (this.dataForm.uuid) {
-            this.$http({
-              url: this.$http.adornUrl(`/app/seating/info/${this.dataForm.uuid}`),
-              method: 'get',
-              params: this.$http.adornParams()
-            }).then(({data}) => {
-              if (data && data.code === 0) {
-                this.dataForm.number = data.seating.number
-                this.dataForm.num = data.seating.num
-                this.dataForm.status = data.seating.status
-              }
-            })
+        })
+      },
+      getOpenTime() {
+        this.$http({
+          url: this.$http.adornUrl('/app/seat/abouttime'),
+          method: 'post',
+          data: this.$http.adornData({}, false)
+        }).then(({data}) => {
+          if (data.code == 0) {
+            var openTimeArr = data.data.split(',')
+            if (openTimeArr[0] !== 'null' && openTimeArr[1] !== 'null') {
+              this.dataForm.begaintime = openTimeArr[0]
+              this.dataForm.endtime = openTimeArr[1]
+            }
           }
         })
       },
       // 表单提交
-      dataFormSubmit () {
+      dataFormSubmit() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
             this.$http({
-              url: this.$http.adornUrl(`/app/seating/${!this.dataForm.uuid ? 'save' : 'update'}`),
+              url: this.$http.adornUrl(`/app/seating/abouttime`),
               method: 'post',
               data: this.$http.adornData({
-                'uuid': this.dataForm.uuid || undefined,
-                'number': this.dataForm.number,
-                'num': this.dataForm.num,
-                'status': this.dataForm.status
+                'begaintime': this.dataForm.begaintime,
+                'endtime': this.dataForm.endtime
               })
             }).then(({data}) => {
               if (data && data.code === 0) {
