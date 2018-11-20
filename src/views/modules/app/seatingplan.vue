@@ -35,10 +35,10 @@
         label="锁定座位号">
       </el-table-column>
       <el-table-column
-        prop="createtime"
+        prop="arrivaldate"
         header-align="center"
         align="center"
-        label="创建时间">
+        label="到店日期">
       </el-table-column>
       <el-table-column
         prop="arrivaltime"
@@ -64,17 +64,17 @@
         align="center"
         label="来客人数">
       </el-table-column>
-      <!--<el-table-column-->
-      <!--prop="openid"-->
-      <!--header-align="center"-->
-      <!--align="center"-->
-      <!--label="微信唯一id">-->
-      <!--</el-table-column>-->
       <el-table-column
         prop="isByours"
         header-align="center"
         align="center"
         label="是否本店人员锁定">
+      </el-table-column>
+      <el-table-column
+        prop="createtime"
+        header-align="center"
+        align="center"
+        label="创建时间">
       </el-table-column>
       <el-table-column
         fixed="right"
