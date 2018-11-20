@@ -5,8 +5,8 @@
     :visible.sync="visible">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
              label-width="150px">
-      <el-form-item label="锁定座位号" prop="number">
-        <el-input v-model="dataForm.number" placeholder="锁定座位号"></el-input>
+      <el-form-item label="座位号" prop="number">
+        <el-input v-model="dataForm.number" placeholder="座位号"></el-input>
       </el-form-item>
       <el-form-item label="到店日期" prop="arrivaldate">
         <el-date-picker v-model="dataForm.arrivaldate" value-format="yyyy-MM-dd" type="date"

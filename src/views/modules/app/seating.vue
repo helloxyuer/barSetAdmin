@@ -1,11 +1,11 @@
 <template>
   <div class="mod-config">
     <el-form :inline="true" :model="dataForm" @keyup.enter.native="getDataList()">
+      <!--<el-form-item>-->
+        <!--<el-input v-model="dataForm.key" placeholder="参数名" clearable></el-input>-->
+      <!--</el-form-item>-->
       <el-form-item>
-        <el-input v-model="dataForm.key" placeholder="参数名" clearable></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="getDataList()">查询</el-button>
+        <!--<el-button @click="getDataList()">查询</el-button>-->
         <el-button type="primary" @click="setOpenTime">设置营业时间</el-button>
         <!--<el-button v-if="isAuth('app:seating:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>-->
       </el-form-item>
@@ -41,10 +41,10 @@
         label="可坐人数">
       </el-table-column>
       <el-table-column
-        prop="status"
+        prop="isBystatus"
         header-align="center"
         align="center"
-        label="座位是否可用 1是0否">
+        label="座位是否可用">
       </el-table-column>
       <el-table-column
         fixed="right"
@@ -112,6 +112,9 @@
           })
         }).then(({data}) => {
           if (data && data.code === 0) {
+            data.page.list.forEach((val) => {
+              val.isBystatus = (val.status == 1 ? '是' : '否')
+            })
             this.dataList = data.page.list
             this.totalPage = data.page.totalCount
           } else {
