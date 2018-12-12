@@ -14,7 +14,7 @@ module.exports = {
     // 代理列表, 是否开启代理通过[./dev.env.js]配置
     proxyTable: devEnv.OPEN_PROXY === false ? {} : {
       '/proxyApi': {
-        target: 'http://www.seajun.com:8090/renren-fast',
+        target: 'http://www.dan-life.cn:8090/danlife',
         changeOrigin: true,
         pathRewrite: {
           '^/proxyApi': '/'
