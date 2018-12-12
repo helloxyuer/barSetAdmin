@@ -30,6 +30,7 @@
               <el-button class="login-btn-submit" type="primary" @click="dataFormSubmit()">登录</el-button>
             </el-form-item>
           </el-form>
+          <div class="beian">滇ICP备18010724号-1</div>
         </div>
       </div>
     </div>
@@ -155,7 +156,7 @@
       position: absolute;
       top: 0;
       right: 0;
-      padding: 150px 60px 180px;
+      padding: 150px 60px 0px;
       width: 470px;
       min-height: 100%;
       background-color: #fff;
@@ -173,6 +174,9 @@
     .login-btn-submit {
       width: 100%;
       margin-top: 38px;
+    }
+    .beian{
+      text-align: center;
     }
   }
 </style>
